@@ -86,54 +86,53 @@ void loop() {
 
   if (Serial.available() > 0) {
     byte c = Serial.read();
-
-    fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
-
     c -= 65; // align to ASCII "A"
+    if (c < 24) { // filter out garbage values
+      fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
 
-    switch (c & B00000011) {
-      case 0:
-        pulse = false;
-        break;
-      case 1:
-        pulse = true;
-        pulse_duration = PULSE_DURATION_SLOW;
-        break;
-      case 2:
-        pulse = true;
-        pulse_duration = PULSE_DURATION_MED;
-        break;
-      case 3:
-        pulse = true;
-        pulse_duration = PULSE_DURATION_FAST;
-        break;
+      switch (c & B00000011) {
+        case 0:
+          pulse = false;
+          pulse_duration = CHANGE_DURATION;
+          break;
+        case 1:
+          pulse = true;
+          pulse_duration = PULSE_DURATION_SLOW;
+          break;
+        case 2:
+          pulse = true;
+          pulse_duration = PULSE_DURATION_MED;
+          break;
+        case 3:
+          pulse = true;
+          pulse_duration = PULSE_DURATION_FAST;
+          break;
+      }
+  
+      switch ((c & B00011100) >> 2) {
+        case 0:
+          hue = HUE_RED;
+          break;
+        case 1:
+          hue = HUE_ORANGE;
+          break;
+        case 2:
+          hue = HUE_YELLOW;
+          break;
+        case 3:
+          hue = HUE_GREEN;
+          break;
+        case 4:
+          hue = HUE_BLUE;
+          break;
+        case 5:
+          hue = HUE_PURPLE;
+          break;
+      }
+
+      fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
     }
-
-    switch ((c & B00011100) >> 2) {
-      case 0:
-        hue = HUE_RED;
-        break;
-      case 1:
-        hue = HUE_ORANGE;
-        break;
-      case 2:
-        hue = HUE_YELLOW;
-        break;
-      case 3:
-        hue = HUE_GREEN;
-        break;
-      case 4:
-        hue = HUE_BLUE;
-        break;
-      case 5:
-        hue = HUE_PURPLE;
-        break;
-    }
-
-    fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
   }
 
-  if (pulse) {
-    fade(PULSE_MAX_VAL, pulse_duration / 2);
-  }
+  fade(PULSE_MAX_VAL, pulse_duration / 2);
 }
