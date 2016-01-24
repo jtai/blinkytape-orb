@@ -26,17 +26,29 @@ long pulse_duration = PULSE_DURATION_FAST;
 
 
 void fade(uint8_t new_val, long duration) {
+  if (val == new_val) {
+    return;
+  }
+  
   int incr;
   long delay_ms;
+  long change_delay_ms;
   if (val < new_val) {
     incr = 1;
     delay_ms = duration / (new_val - val);
+    if (CHANGE_DURATION / 2 < duration) {
+      change_delay_ms = (CHANGE_DURATION / 2) / (new_val - val);
+    } else {
+      change_delay_ms = delay_ms;
+    }
   } else if (val > new_val) {
     incr = -1;
     delay_ms = duration / (val - new_val);
-  } else {
-    delay(duration);
-    return;
+    if (CHANGE_DURATION / 2 < duration) {
+      change_delay_ms = (CHANGE_DURATION / 2) / (val - new_val);
+    } else {
+      change_delay_ms = delay_ms;
+    }
   }
 
   for (uint8_t v = val; v != new_val; v += incr) {
@@ -44,7 +56,13 @@ void fade(uint8_t new_val, long duration) {
       leds[i] = CHSV(hue, 255, v);
     }
     FastLED.show();
-    delay(delay_ms);
+
+    // check to see if we've been given a new command, if so, hurry things along
+    if (Serial.available() > 0) {
+      delay(change_delay_ms);
+    } else {
+      delay(delay_ms);
+    }
   }
 
   val = new_val;
