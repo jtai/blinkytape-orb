@@ -2,6 +2,7 @@
 
 // hardware
 #define NUM_LEDS 12
+#define LED_CORRECTION TypicalSMD5050
 
 #define DATA_PIN 3
 
@@ -53,6 +54,7 @@ void setup() {
   Serial.begin(57600);
 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
+  FastLED.setCorrection(LED_CORRECTION);
 
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(hue, 255, val);
