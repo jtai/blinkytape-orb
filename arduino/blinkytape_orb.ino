@@ -34,9 +34,8 @@ uint8_t val;
 bool pulse;
 long pulse_duration;
 
-volatile bool buttonDebounced;
-volatile uint8_t brightness;
-
+bool buttonDebounced;
+uint8_t brightness;
 
 
 void fade(uint8_t new_val, long duration) {
@@ -127,59 +126,75 @@ void loop() {
   if (Serial.available() > 0) {
     byte c = Serial.read();
     c -= 65; // align to ASCII "A"
-    if (c < 24) { // filter out garbage values
-      fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
-
-      switch (c & B00000011) {
-        case 0:
-          pulse = false;
-          pulse_duration = CHANGE_DURATION;
-          break;
-        case 1:
-          pulse = true;
-          pulse_duration = PULSE_DURATION_SLOW;
-          break;
-        case 2:
-          pulse = true;
-          pulse_duration = PULSE_DURATION_MED;
-          break;
-        case 3:
-          pulse = true;
-          pulse_duration = PULSE_DURATION_FAST;
-          break;
-      }
-  
-      switch ((c & B00011100) >> 2) {
-        case 0:
-          hue = HUE_RED;
-          break;
-        case 1:
-          hue = HUE_ORANGE;
-          break;
-        case 2:
-          hue = HUE_YELLOW;
-          break;
-        case 3:
-          hue = HUE_GREEN;
-          break;
-        case 4:
-          hue = HUE_BLUE;
-          break;
-        case 5:
-          hue = HUE_PURPLE;
-          break;
-      }
-
-      initialized = true;
-
-      fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
+    switch (c) {
+      case 32:
+        brightness = BRIGHTNESS_MIN;
+        FastLED.setBrightness(brightness);
+        break;
+      case 33:
+        brightness = BRIGHTNESS_MED;
+        FastLED.setBrightness(brightness);
+        break;
+      case 34:
+        brightness = BRIGHTNESS_MAX;
+        FastLED.setBrightness(brightness);
+        break;
+      default:
+        if (c < 24) { // filter out garbage values
+          fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
+    
+          switch (c & B00000011) {
+            case 0:
+              pulse = false;
+              pulse_duration = CHANGE_DURATION;
+              break;
+            case 1:
+              pulse = true;
+              pulse_duration = PULSE_DURATION_SLOW;
+              break;
+            case 2:
+              pulse = true;
+              pulse_duration = PULSE_DURATION_MED;
+              break;
+            case 3:
+              pulse = true;
+              pulse_duration = PULSE_DURATION_FAST;
+              break;
+          }
+      
+          switch ((c & B00011100) >> 2) {
+            case 0:
+              hue = HUE_RED;
+              break;
+            case 1:
+              hue = HUE_ORANGE;
+              break;
+            case 2:
+              hue = HUE_YELLOW;
+              break;
+            case 3:
+              hue = HUE_GREEN;
+              break;
+            case 4:
+              hue = HUE_BLUE;
+              break;
+            case 5:
+              hue = HUE_PURPLE;
+              break;
+          }
+    
+          initialized = true;
+    
+          fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
+        }
+        break;
     }
   }
 
   fade(PULSE_MAX_VAL, pulse_duration / 2);
 }
 
-// Called when the button is both pressed and released.
+// Called when the button is both pressed and released
 ISR(PCINT0_vect){
   if (!(PINB & (1 << PINB6))) {
     buttonDebounced = false;
@@ -195,13 +210,10 @@ ISR(PCINT0_vect){
   }
 }
 
-// This is called every xx ms while the button is being held down; it counts down then displays a
-// visual cue and changes the pattern.
+// Called every xx ms while the button is being held down
 ISR(TIMER4_OVF_vect) {
-  // If the user is still holding down the button after the first cycle, they were serious about it.
   if (buttonDebounced == false) {
     buttonDebounced = true;
-
     switch (brightness) {
       case BRIGHTNESS_MIN:
         brightness = BRIGHTNESS_MED;
