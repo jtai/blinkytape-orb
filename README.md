@@ -85,13 +85,13 @@ sleep(3)
 end
 ```
 
-# Serial Protocol
+## Serial Protocol
 
 The custom firmware accepts a single ASCII character per update. Regular
 updates encode both a color and pulse speed. Some characters are set aside to
 allow controlling brightness.
 
-## Regular Updates (Color and Pulse Speed)
+### Regular Updates (Color and Pulse Speed)
 
 The two lowest bits encode the pulse speed:
 
@@ -123,7 +123,7 @@ In other words, "A" is red with no pulsing, followed by "B" for slow pulsing,
 "C" for medium pulsing, and "D" for fast pulsing. "E" is orange with no
 pulsing, "F" is orange with slow pulsing, etc.
 
-## Brightness Updates
+### Brightness Updates
 
 There are three settings encoded in two bits:
 
@@ -138,7 +138,7 @@ is bright. The Ruby one-liner for encoding is:
 ('a'.ord + brightness).chr
 ```
 
-# Hardware Setup
+## Hardware Setup
 
 I stuck the [BlinkyTape controller board](http://blinkinlabs.myshopify.com/collections/frontpage/products/blinkytape-control-board)
 on the plastic base of the Orb with a small styrofoam riser (poor man's 3D

@@ -1,4 +1,4 @@
-The MIT License (MIT)
+## The MIT License (MIT)
 
 Copyright (c) 2016 Jon Tai
 
@@ -20,13 +20,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-
+---
 
 Hardware initialization and interrupt handling arduino code was copied from
 https://github.com/Blinkinlabs/BlinkyTape_Arduino, which has the following
 license:
 
-The MIT License (MIT)
+## The MIT License (MIT)
 
 Copyright (c) 2013 Blinkinlabs, LLC
 
