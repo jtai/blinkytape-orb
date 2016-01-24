@@ -18,6 +18,10 @@ class BlinkyTapeOrb
   PULSE_MED  = 2
   PULSE_FAST = 3
 
+  BRIGHTNESS_MIN = 0
+  BRIGHTNESS_MED = 1
+  BRIGHTNESS_MAX = 2
+
   def initialize(options = {})
     @opts = options
   end
@@ -54,6 +58,16 @@ class BlinkyTapeOrb
     logger.info("updating with color=#{color}, pulse=#{pulse}")
 
     send((65 + (color * 4) + pulse).chr)
+  end
+
+  def setBrightness(brightness)
+    if (brightness < 0 || brightness > 2)
+      raise ArgumentError, 'brightness must be between 0 and 2'
+    end
+
+    logger.info("setting brightness=#{brightness}")
+
+    send((65 + 32 + brightness).chr)
   end
 
   private

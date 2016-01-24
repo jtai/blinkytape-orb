@@ -21,6 +21,17 @@ orb = BlinkyTapeOrb.new
 #orb.logger.level = Logger::DEBUG
 
 [
+  BlinkyTapeOrb::BRIGHTNESS_MIN,
+  BlinkyTapeOrb::BRIGHTNESS_MED,
+  BlinkyTapeOrb::BRIGHTNESS_MAX,
+].each do |brightness|
+  orb.setBrightness(brightness)
+  sleep(1)
+end
+
+sleep(3)
+
+[
   [ BlinkyTapeOrb::COLOR_GREEN,  BlinkyTapeOrb::PULSE_NONE ],
   [ BlinkyTapeOrb::COLOR_BLUE,   BlinkyTapeOrb::PULSE_SLOW ],
   [ BlinkyTapeOrb::COLOR_PURPLE, BlinkyTapeOrb::PULSE_SLOW ],
