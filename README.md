@@ -152,6 +152,9 @@ anymore. (The wires kind of help keep the base attached to the glass.) I
 considered getting a NeoPixel 7-LED jewel to sit in the center of the ring, but
 the 12 LEDs are plenty bright even in daylight.
 
+![Hardware, Side View](https://raw.githubusercontent.com/jtai/blinkytape-orb/master/hardware/photos/hardware-side.jpg)
+![Hardware, Top View](https://raw.githubusercontent.com/jtai/blinkytape-orb/master/hardware/photos/hardware-top.jpg)
+
 adafruit makes NeoPixel LEDs in a variety of form factors. I built another
 "Orb" using the [8-LED strip](https://www.adafruit.com/products/1426) that has
 no enclosure—it is just attached to the underside of my monitor and lights up
