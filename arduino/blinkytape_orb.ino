@@ -4,7 +4,7 @@
 #define NUM_LEDS 12
 #define LED_CORRECTION TypicalSMD5050
 
-#define DATA_PIN 3
+#define DATA_PIN 13
 
 // visuals
 #define PULSE_MAX_VAL 255
