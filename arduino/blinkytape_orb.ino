@@ -18,10 +18,11 @@
 
 // state
 CRGB leds[NUM_LEDS];
-uint8_t hue = HUE_RED;
-uint8_t val = PULSE_MAX_VAL;
-bool pulse = true;
-long pulse_duration = PULSE_DURATION_FAST;
+bool initialized;
+uint8_t hue;
+uint8_t val;
+bool pulse;
+long pulse_duration;
 
 
 
@@ -53,7 +54,11 @@ void fade(uint8_t new_val, long duration) {
 
   for (uint8_t v = val; v != new_val; v += incr) {
     for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CHSV(hue, 255, v);
+      if (initialized) {
+        leds[i] = CHSV(hue, 255, v);
+      } else {
+        leds[i] = CRGB(v, v, v);
+      }
     }
     FastLED.show();
 
@@ -74,9 +79,15 @@ void setup() {
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
   FastLED.setCorrection(LED_CORRECTION);
 
+  initialized = false;
+  val = PULSE_MAX_VAL;
+  pulse = true;
+  pulse_duration = PULSE_DURATION_MED;
+
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(hue, 255, val);
+    leds[i] = CRGB(val, val, val);
   }
+  FastLED.show();
 }
 
 void loop() {
@@ -129,6 +140,8 @@ void loop() {
           hue = HUE_PURPLE;
           break;
       }
+
+      initialized = true;
 
       fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
     }
