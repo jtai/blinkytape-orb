@@ -5,6 +5,10 @@
 #define LED_CORRECTION TypicalSMD5050
 
 #define DATA_PIN 13
+#define BUTTON_IN 10
+#define ANALOG_INPUT A9
+#define EXTRA_PIN_A 7
+#define EXTRA_PIN_B 11
 
 // visuals
 #define PULSE_MAX_VAL 255
@@ -16,18 +20,29 @@
 #define CHANGE_MIN_VAL 64
 #define CHANGE_DURATION 800
 
+#define BRIGHTNESS_MAX 255
+#define BRIGHTNESS_MED 106
+#define BRIGHTNESS_MIN 32
+
 // state
 CRGB leds[NUM_LEDS];
+
 bool initialized;
+
 uint8_t hue;
 uint8_t val;
 bool pulse;
 long pulse_duration;
 
+volatile bool buttonDebounced;
+volatile uint8_t brightness;
+
 
 
 void fade(uint8_t new_val, long duration) {
   if (val == new_val) {
+    // setBrightness() requires a call to delay() periodically
+    FastLED.delay(duration);
     return;
   }
   
@@ -64,9 +79,9 @@ void fade(uint8_t new_val, long duration) {
 
     // check to see if we've been given a new command, if so, hurry things along
     if (Serial.available() > 0) {
-      delay(change_delay_ms);
+      FastLED.delay(change_delay_ms);
     } else {
-      delay(delay_ms);
+      FastLED.delay(delay_ms);
     }
   }
 
@@ -80,14 +95,28 @@ void setup() {
   FastLED.setCorrection(LED_CORRECTION);
 
   initialized = false;
+
   val = PULSE_MAX_VAL;
   pulse = true;
   pulse_duration = PULSE_DURATION_MED;
+
+  brightness = BRIGHTNESS_MED;
+  FastLED.setBrightness(brightness);
 
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CRGB(val, val, val);
   }
   FastLED.show();
+
+  pinMode(BUTTON_IN, INPUT_PULLUP);
+  pinMode(ANALOG_INPUT, INPUT_PULLUP);
+  pinMode(EXTRA_PIN_A, INPUT_PULLUP);
+  pinMode(EXTRA_PIN_B, INPUT_PULLUP);
+
+  // Interrupt set-up; see Atmega32u4 datasheet section 11
+  PCIFR  |= (1 << PCIF0);  // Just in case, clear interrupt flag
+  PCMSK0 |= (1 << PCINT6); // Set interrupt mask to the button pin (PCINT6)
+  PCICR  |= (1 << PCIE0);  // Enable interrupt
 }
 
 void loop() {
@@ -148,4 +177,42 @@ void loop() {
   }
 
   fade(PULSE_MAX_VAL, pulse_duration / 2);
+}
+
+// Called when the button is both pressed and released.
+ISR(PCINT0_vect){
+  if (!(PINB & (1 << PINB6))) {
+    buttonDebounced = false;
+
+    // Configure and start timer4 interrupt.
+    TCCR4B = 0x0F; // Slowest prescaler
+    TCCR4D = _BV(WGM41) | _BV(WGM40);  // Fast PWM mode
+    OCR4C = 0x10;        // some random percentage of the clock
+    TCNT4 = 0;  // Reset the counter
+    TIMSK4 = _BV(TOV4);  // turn on the interrupt
+  } else {
+    TIMSK4 = 0;  // turn off the interrupt
+  }
+}
+
+// This is called every xx ms while the button is being held down; it counts down then displays a
+// visual cue and changes the pattern.
+ISR(TIMER4_OVF_vect) {
+  // If the user is still holding down the button after the first cycle, they were serious about it.
+  if (buttonDebounced == false) {
+    buttonDebounced = true;
+
+    switch (brightness) {
+      case BRIGHTNESS_MIN:
+        brightness = BRIGHTNESS_MED;
+        break;
+      case BRIGHTNESS_MED:
+        brightness = BRIGHTNESS_MAX;
+        break;
+      case BRIGHTNESS_MAX:
+        brightness = BRIGHTNESS_MIN;
+        break;
+    }
+    FastLED.setBrightness(brightness);
+  }
 }
