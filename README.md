@@ -143,14 +143,14 @@ is bright. The Ruby one-liner for encoding is:
 I stuck the [BlinkyTape controller board](http://blinkinlabs.myshopify.com/collections/frontpage/products/blinkytape-control-board)
 on the plastic base of the Orb with a small styrofoam riser (poor man's 3D
 printer) and some double-sided tape. The [adafruit NeoPixel 12-LED ring](https://www.adafruit.com/product/1643)
-easily fits on the plastic base and in the hole in the bottom of the orb. It
-rests on slightly higher styrofoam risers, above the controller board. I got
-the JST connector version of the controller board, snipped off the connector,
-and soldered the wires directly to the NeoPixel ring. The glass orb simply
-rests on the plastic base as there isn't anything for the base to screw into
-anymore. (The wires kind of help keep the base attached to the glass.) I
-considered getting a NeoPixel 7-LED jewel to sit in the center of the ring, but
-the 12 LEDs are plenty bright even in daylight.
+easily fits on the plastic base and in the hole in the bottom of the glass part
+of the orb. The ring rests on slightly higher styrofoam risers, above the
+controller board. I got the JST connector version of the controller board,
+snipped off the connector, and soldered the wires directly to the NeoPixel
+ring. The glass orb simply rests on the plastic base since there isn't anything
+for the base to screw into anymore. (The wires kind of help keep the base
+attached to the glass.) I considered getting a NeoPixel 7-LED jewel to sit in
+the center of the ring, but the 12 LEDs are plenty bright even in daylight.
 
 ![Hardware, Side View](https://raw.githubusercontent.com/jtai/blinkytape-orb/master/hardware/photos/hardware-side.jpg)
 ![Hardware, Top View](https://raw.githubusercontent.com/jtai/blinkytape-orb/master/hardware/photos/hardware-top.jpg)
