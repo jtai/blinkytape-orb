@@ -57,7 +57,7 @@ class BlinkyTapeOrb
 
     logger.info("updating with color=#{color}, pulse=#{pulse}")
 
-    send((65 + (color * 4) + pulse).chr)
+    send(('A'.ord + (color * 4) + pulse).chr)
   end
 
   def setBrightness(brightness)
@@ -67,7 +67,7 @@ class BlinkyTapeOrb
 
     logger.info("setting brightness=#{brightness}")
 
-    send((65 + 32 + brightness).chr)
+    send(('a'.ord + brightness).chr)
   end
 
   private
