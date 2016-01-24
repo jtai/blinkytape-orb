@@ -27,6 +27,8 @@
 // state
 CRGB leds[NUM_LEDS];
 
+byte prev_command;
+byte command;
 bool initialized;
 
 uint8_t hue;
@@ -38,10 +40,46 @@ bool buttonDebounced;
 uint8_t brightness;
 
 
+void checkSerial() {
+  if (Serial.available() > 0) {
+    command = Serial.read();
+  }
+
+  // handle brightness changes immediately
+  // if command was a brightness change or an invalid command,
+  // swallow it to prevent rushing through the next fade
+  switch (command) {
+    case 97:
+      brightness = BRIGHTNESS_MIN;
+      FastLED.setBrightness(brightness);
+      command = prev_command;
+      break;
+    case 98:
+      brightness = BRIGHTNESS_MED;
+      FastLED.setBrightness(brightness);
+      command = prev_command;
+      break;
+    case 99:
+      brightness = BRIGHTNESS_MAX;
+      FastLED.setBrightness(brightness);
+      command = prev_command;
+      break;
+    default:
+      if (command - 65 >= 24) { // swallow garbage values
+        command = prev_command;
+      }
+      break;
+  }
+}
+
 void fade(uint8_t new_val, long duration) {
   if (val == new_val) {
+    checkSerial();
+
     // setBrightness() requires a call to delay() periodically
+    // without this line, we can't change the brightness when we're not pulsing
     FastLED.delay(duration);
+
     return;
   }
   
@@ -76,8 +114,10 @@ void fade(uint8_t new_val, long duration) {
     }
     FastLED.show();
 
-    // check to see if we've been given a new command, if so, hurry things along
-    if (Serial.available() > 0) {
+    // check to see if we've been given a new hue or pulse command
+    // if so, hurry things along
+    checkSerial();
+    if (command != prev_command) {
       FastLED.delay(change_delay_ms);
     } else {
       FastLED.delay(delay_ms);
@@ -93,6 +133,8 @@ void setup() {
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
   FastLED.setCorrection(LED_CORRECTION);
 
+  prev_command = 122; // initialize to invalid command so any valid command will trigger action
+  command = 122;
   initialized = false;
 
   val = PULSE_MAX_VAL;
@@ -123,72 +165,55 @@ void loop() {
     fade(PULSE_MIN_VAL, pulse_duration / 2);
   }
 
-  if (Serial.available() > 0) {
-    byte c = Serial.read();
-    c -= 65; // align to ASCII "A"
-    switch (c) {
-      case 32:
-        brightness = BRIGHTNESS_MIN;
-        FastLED.setBrightness(brightness);
+  if (command != prev_command) {
+    fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
+
+    prev_command = command;
+    initialized = true;
+
+    byte c = command - 65; // align to ASCII "A"
+
+    switch ((c & B00011100) >> 2) {
+      case 0:
+        hue = HUE_RED;
         break;
-      case 33:
-        brightness = BRIGHTNESS_MED;
-        FastLED.setBrightness(brightness);
+      case 1:
+        hue = HUE_ORANGE;
         break;
-      case 34:
-        brightness = BRIGHTNESS_MAX;
-        FastLED.setBrightness(brightness);
+      case 2:
+        hue = HUE_YELLOW;
         break;
-      default:
-        if (c < 24) { // filter out garbage values
-          fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
-    
-          switch (c & B00000011) {
-            case 0:
-              pulse = false;
-              pulse_duration = CHANGE_DURATION;
-              break;
-            case 1:
-              pulse = true;
-              pulse_duration = PULSE_DURATION_SLOW;
-              break;
-            case 2:
-              pulse = true;
-              pulse_duration = PULSE_DURATION_MED;
-              break;
-            case 3:
-              pulse = true;
-              pulse_duration = PULSE_DURATION_FAST;
-              break;
-          }
-      
-          switch ((c & B00011100) >> 2) {
-            case 0:
-              hue = HUE_RED;
-              break;
-            case 1:
-              hue = HUE_ORANGE;
-              break;
-            case 2:
-              hue = HUE_YELLOW;
-              break;
-            case 3:
-              hue = HUE_GREEN;
-              break;
-            case 4:
-              hue = HUE_BLUE;
-              break;
-            case 5:
-              hue = HUE_PURPLE;
-              break;
-          }
-    
-          initialized = true;
-    
-          fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
-        }
+      case 3:
+        hue = HUE_GREEN;
+        break;
+      case 4:
+        hue = HUE_BLUE;
+        break;
+      case 5:
+        hue = HUE_PURPLE;
         break;
     }
+
+    switch (c & B00000011) {
+      case 0:
+        pulse = false;
+        pulse_duration = CHANGE_DURATION;
+        break;
+      case 1:
+        pulse = true;
+        pulse_duration = PULSE_DURATION_SLOW;
+        break;
+      case 2:
+        pulse = true;
+        pulse_duration = PULSE_DURATION_MED;
+        break;
+      case 3:
+        pulse = true;
+        pulse_duration = PULSE_DURATION_FAST;
+        break;
+    }
+
+    fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
   }
 
   fade(PULSE_MAX_VAL, pulse_duration / 2);
