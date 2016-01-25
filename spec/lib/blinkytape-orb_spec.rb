@@ -111,8 +111,8 @@ describe BlinkyTapeOrb do
     end
 
     context 'with valid arguments' do
-      it 'sends correct update' do
-        expect(orb).to receive(:send).with('c')
+      it 'sends correct command' do
+        expect(orb).to receive(:send).with('>')
         orb.setBrightness(brightness)
       end
     end
@@ -120,8 +120,8 @@ describe BlinkyTapeOrb do
     context 'with min brightness' do
       let (:brightness) { BlinkyTapeOrb::BRIGHTNESS_MIN }
 
-      it 'sends correct update' do
-        expect(orb).to receive(:send).with('a')
+      it 'sends correct command' do
+        expect(orb).to receive(:send).with('<')
         orb.setBrightness(brightness)
       end
     end

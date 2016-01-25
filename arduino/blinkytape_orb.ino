@@ -45,30 +45,27 @@ void checkSerial() {
     command = Serial.read();
   }
 
-  // handle brightness changes immediately
-  // if command was a brightness change or an invalid command,
-  // swallow it to prevent rushing through the next fade
-  switch (command) {
-    case 97:
-      brightness = BRIGHTNESS_MIN;
-      FastLED.setBrightness(brightness);
-      command = prev_command;
-      break;
-    case 98:
-      brightness = BRIGHTNESS_MED;
-      FastLED.setBrightness(brightness);
-      command = prev_command;
-      break;
-    case 99:
-      brightness = BRIGHTNESS_MAX;
-      FastLED.setBrightness(brightness);
-      command = prev_command;
-      break;
-    default:
-      if (command - 65 >= 24) { // swallow garbage values
-        command = prev_command;
-      }
-      break;
+  // handle certain commands immediately, then swallow the
+  // handled commands to prevent rushing through the next fade
+  if (command >= 60 && command < 63) { // brightness
+    switch (command - 60) { // align to ASCII "<"
+      case 0:
+        brightness = BRIGHTNESS_MIN;
+        break;
+      case 1:
+        brightness = BRIGHTNESS_MED;
+        break;
+      case 2:
+        brightness = BRIGHTNESS_MAX;
+        break;
+    }
+
+    FastLED.setBrightness(brightness);
+    command = prev_command;
+  } else if (command >= 65 && command < 89) { // color and pulse
+    // handled later at low point in fade for a nice smooth transition
+  } else { // invalid command
+    command = prev_command;
   }
 }
 

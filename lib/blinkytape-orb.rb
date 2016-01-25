@@ -67,7 +67,7 @@ class BlinkyTapeOrb
 
     logger.info("setting brightness=#{brightness}")
 
-    send(('a'.ord + brightness).chr)
+    send(('<'.ord + brightness).chr)
   end
 
   private

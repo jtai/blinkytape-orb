@@ -131,11 +131,11 @@ There are three settings encoded in two bits:
 * `01` - Medium
 * `10` - Bright
 
-These are "shifted up" by 97 (ASCII "a"). So "a" is dim, "b" is medium, and "c"
+These are "shifted up" by 60 (ASCII "<"). So "<" is dim, "=" is medium, and ">"
 is bright. The Ruby one-liner for encoding is:
 
 ```ruby
-('a'.ord + brightness).chr
+('<'.ord + brightness).chr
 ```
 
 ## Hardware Setup
