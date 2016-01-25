@@ -46,7 +46,7 @@ class BlinkyTapeOrb
     end
   end
 
-  def update(color, pulse)
+  def setColorAndPulse(color, pulse)
     if (color < 0 || color > 5)
       raise ArgumentError, 'color must be between 0 and 5'
     end

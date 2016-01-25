@@ -44,7 +44,7 @@ describe BlinkyTapeOrb do
 
   end
 
-  describe '#update' do
+  describe '#setColorAndPulse' do
 
     let (:color) { BlinkyTapeOrb::COLOR_RED }
     let (:pulse) { BlinkyTapeOrb::PULSE_NONE }
@@ -54,7 +54,7 @@ describe BlinkyTapeOrb do
 
       it 'raises ArgumentError' do
         expect {
-          orb.update(color, pulse)
+          orb.setColorAndPulse(color, pulse)
         }.to raise_error(ArgumentError)
       end
     end
@@ -64,33 +64,33 @@ describe BlinkyTapeOrb do
 
       it 'raises ArgumentError' do
         expect {
-          orb.update(color, pulse)
+          orb.setColorAndPulse(color, pulse)
         }.to raise_error(ArgumentError)
       end
     end
 
     context 'with valid arguments' do
-      it 'sends correct update' do
+      it 'sends correct command' do
         expect(orb).to receive(:send).with('A')
-        orb.update(color, pulse)
+        orb.setColorAndPulse(color, pulse)
       end
     end
 
     context 'with purple color' do
       let (:color) { BlinkyTapeOrb::COLOR_PURPLE }
 
-      it 'sends correct update' do
+      it 'sends correct command' do
         expect(orb).to receive(:send).with('U')
-        orb.update(color, pulse)
+        orb.setColorAndPulse(color, pulse)
       end
     end
 
     context 'with fast pulse' do
       let (:pulse) { BlinkyTapeOrb::PULSE_FAST }
 
-      it 'sends correct update' do
+      it 'sends correct command' do
         expect(orb).to receive(:send).with('D')
-        orb.update(color, pulse)
+        orb.setColorAndPulse(color, pulse)
       end
     end
 
@@ -137,7 +137,7 @@ describe BlinkyTapeOrb do
       io = double('serial_port')
       expect(io).to receive(:write).with('A')
       expect(SerialPort).to receive(:open).and_yield(io)
-      orb.update(BlinkyTapeOrb::COLOR_RED, BlinkyTapeOrb::PULSE_NONE)
+      orb.setColorAndPulse(BlinkyTapeOrb::COLOR_RED, BlinkyTapeOrb::PULSE_NONE)
     end
 
   end

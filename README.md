@@ -79,8 +79,8 @@ sleep(3)
   [ BlinkyTapeOrb::COLOR_YELLOW, BlinkyTapeOrb::PULSE_MED  ],
   [ BlinkyTapeOrb::COLOR_ORANGE, BlinkyTapeOrb::PULSE_MED  ],
   [ BlinkyTapeOrb::COLOR_RED,    BlinkyTapeOrb::PULSE_FAST ],
-].each do |(color, animation)|
-  orb.update(color, animation)
+].each do |(color, pulse)|
+  orb.setColorAndPulse(color, pulse)
   sleep(10)
 end
 ```
