@@ -19,7 +19,7 @@ display everything. This protocol is required for compatibility with BlinkyTape
 software such as [PatternPaint](http://blinkinlabs.com/blinkytape/patternpaint/).
 
 On the other hand, the Ambient Orb accepts a color and animation, encoded as
-ASCII. After recieving an update, the Orb continues to animate (pulse) on its
+ASCII. After recieving a command, the Orb continues to animate (pulse) on its
 own. Like on the BlinkyTape, the button is used to cycle through several
 brightness levels.
 
@@ -30,7 +30,7 @@ differences:
  * Only 6 colors and 4 pulse speeds are accepted (vs. 37 and 10,
    respectively)
  * As a result, the serial protocol is simplified to 1 ASCII character per
-   update
+   command
  * Brightness can be controlled via the serial protocol as well as via the
    hardware button (it's unclear if the Orb allowed this as well)
  * Animations were recreated from memory without comparing them side by side
@@ -87,11 +87,11 @@ end
 
 ## Serial Protocol
 
-The custom firmware accepts a single ASCII character per update. Regular
-updates encode both a color and pulse speed. Some characters are set aside to
-allow controlling brightness.
+The custom firmware accepts a single ASCII character per command. Color and
+pulse speed commands encode both attributes in a single character. In
+brightness commands, a single character corresponds to a single brightness.
 
-### Regular Updates (Color and Pulse Speed)
+### Color and Pulse Speed
 
 The two lowest bits encode the pulse speed:
 
@@ -123,7 +123,7 @@ In other words, "A" is red with no pulsing, followed by "B" for slow pulsing,
 "C" for medium pulsing, and "D" for fast pulsing. "E" is orange with no
 pulsing, "F" is orange with slow pulsing, etc.
 
-### Brightness Updates
+### Brightness
 
 There are three settings encoded in two bits:
 
