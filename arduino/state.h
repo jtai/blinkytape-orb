@@ -1,37 +1,37 @@
+#ifndef __INC_STATE_H
+#define __INC_STATE_H
+
+#include "visuals.h"
+
 struct State;
 
 struct State {
-  bool hue_initialized;
-  uint8_t hue;
-
-  bool pulse;
-  long pulse_duration;
+  Color color;
+  Pulse pulse;
 
   inline State() __attribute__((always_inline)) {
-    hue_initialized = false;
+    color = COLOR_WHITE;
+    pulse = PULSE_NONE;
   }
 
   inline State(const State& rhs) __attribute__((always_inline)) {
-    hue_initialized = rhs.hue_initialized;
-    hue = rhs.hue;
+    color = rhs.color;
     pulse = rhs.pulse;
-    pulse_duration = rhs.pulse_duration;
   }
 
   inline State& operator= (const State& rhs) __attribute__((always_inline)) {
-    hue_initialized = rhs.hue_initialized;
-    hue = rhs.hue;
+    color = rhs.color;
     pulse = rhs.pulse;
-    pulse_duration = rhs.pulse_duration;
     return *this;
   }
 };
 
 inline __attribute__((always_inline)) bool operator== (const State& lhs, const State& rhs) {
-    return (lhs.hue_initialized == rhs.hue_initialized) && (lhs.hue == rhs.hue) && 
-           (lhs.pulse == rhs.pulse) && (lhs.pulse_duration == rhs.pulse_duration);
+  return lhs.color == rhs.color && lhs.pulse == rhs.pulse;
 }
 
 inline __attribute__((always_inline)) bool operator!= (const State& lhs, const State& rhs) {
-    return !(lhs == rhs);
+  return !(lhs == rhs);
 }
+
+#endif

@@ -1,4 +1,5 @@
 #include "FastLED.h"
+#include "visuals.h"
 #include "state.h"
 
 // hardware
@@ -10,20 +11,6 @@
 #define ANALOG_INPUT A9
 #define EXTRA_PIN_A 7
 #define EXTRA_PIN_B 11
-
-// visuals
-#define PULSE_MAX_VAL 255
-#define PULSE_MIN_VAL 160
-#define PULSE_DURATION_SLOW 6000
-#define PULSE_DURATION_MED 3000
-#define PULSE_DURATION_FAST 0
-
-#define CHANGE_MIN_VAL 64
-#define CHANGE_DURATION 800
-
-#define BRIGHTNESS_MAX 255
-#define BRIGHTNESS_MED 106
-#define BRIGHTNESS_MIN 32
 
 // state
 CRGB leds[NUM_LEDS];
@@ -46,107 +33,53 @@ void checkSerial() {
 
   if (command >= 60 && command < 63) { // brightness
     command -= 60; // align to ASCII "<"
-
-    switch (command) {
-      case 0:
-        brightness = BRIGHTNESS_MIN;
-        break;
-      case 1:
-        brightness = BRIGHTNESS_MED;
-        break;
-      case 2:
-        brightness = BRIGHTNESS_MAX;
-        break;
-    }
+    brightness = (Brightness)command;
 
     // handle this immediately
-    FastLED.setBrightness(brightness);
+    FastLED.setBrightness(brightnesses[brightness]);
   } else if (command >= 65 && command < 89) { // color and pulse
     command -= 65; // align to ASCII "A"
-
-    next.hue_initialized = true;
-    switch ((command & B00011100) >> 2) {
-      case 0:
-        next.hue = HUE_RED;
-        break;
-      case 1:
-        next.hue = HUE_ORANGE;
-        break;
-      case 2:
-        next.hue = HUE_YELLOW;
-        break;
-      case 3:
-        next.hue = HUE_GREEN;
-        break;
-      case 4:
-        next.hue = HUE_BLUE;
-        break;
-      case 5:
-        next.hue = HUE_PURPLE;
-        break;
-    }
-
-    switch (command & B00000011) {
-      case 0:
-        next.pulse = false;
-        next.pulse_duration = CHANGE_DURATION;
-        break;
-      case 1:
-        next.pulse = true;
-        next.pulse_duration = PULSE_DURATION_SLOW;
-        break;
-      case 2:
-        next.pulse = true;
-        next.pulse_duration = PULSE_DURATION_MED;
-        break;
-      case 3:
-        next.pulse = true;
-        next.pulse_duration = PULSE_DURATION_FAST;
-        break;
-    }
+    next.color = (Color)((command & B00011100) >> 2);
+    next.pulse = (Pulse)(command & B00000011);
 
     // handle change later at low point in fade for a nice smooth transition
   }
 }
 
-void fade(uint8_t new_val, long duration) {
-  if (val == new_val) {
+void fade(uint8_t next_val, Pulse pulse) {
+  long duration = pulse_durations[pulse] / 2;
+
+  if (next_val == val) {
+    // check for input before returning, otherwise we won't respond to changes
+    // when pulse is PULSE_NONE
     checkSerial();
 
-    // setBrightness() requires a call to delay() periodically
-    // without this line, we can't change the brightness when we're not pulsing
+    // setBrightness() requires a call to delay() periodically--without this,
+    // the brightness will not change when pulse is PULSE_NONE
     FastLED.delay(duration);
 
     return;
   }
 
-  int incr;
-  long delay_ms;
-  long change_delay_ms;
-  if (val < new_val) {
+  int8_t incr;
+  if (val < next_val) {
     incr = 1;
-    delay_ms = duration / (new_val - val);
-    if (CHANGE_DURATION / 2 < duration) {
-      change_delay_ms = (CHANGE_DURATION / 2) / (new_val - val);
-    } else {
-      change_delay_ms = delay_ms;
-    }
-  } else if (val > new_val) {
+  } else if (val > next_val) {
     incr = -1;
-    delay_ms = duration / (val - new_val);
-    if (CHANGE_DURATION / 2 < duration) {
-      change_delay_ms = (CHANGE_DURATION / 2) / (val - new_val);
-    } else {
-      change_delay_ms = delay_ms;
-    }
   }
 
-  for (uint8_t v = val; v != new_val; v += incr) {
-    for (int i = 0; i < NUM_LEDS; i++) {
-      if (current.hue_initialized) {
-        leds[i] = CHSV(current.hue, 255, v);
-      } else {
+  long delay_ms = duration / (next_val - val) * incr;
+  long change_delay_ms = (pulse_durations[PULSE_CHANGE] / 2) / (next_val - val) * incr;
+  if (delay_ms < change_delay_ms) {
+    change_delay_ms = delay_ms;
+  }
+
+  for (uint8_t v = val; v != next_val; v += incr) {
+    for (uint8_t i = 0; i < NUM_LEDS; i++) {
+      if (current.color == COLOR_WHITE) {
         leds[i] = CRGB(v, v, v);
+      } else {
+        leds[i] = CHSV(colors[current.color], 255, v);
       }
     }
     FastLED.show();
@@ -160,7 +93,7 @@ void fade(uint8_t new_val, long duration) {
     }
   }
 
-  val = new_val;
+  val = next_val;
 }
 
 void setup() {
@@ -171,14 +104,13 @@ void setup() {
 
   val = PULSE_MAX_VAL;
 
-  current.pulse = true;
-  current.pulse_duration = PULSE_DURATION_MED;
+  current.pulse = PULSE_MED;
   next = current;
 
   brightness = BRIGHTNESS_MED;
-  FastLED.setBrightness(brightness);
+  FastLED.setBrightness(brightnesses[brightness]);
 
-  for (int i = 0; i < NUM_LEDS; i++) {
+  for (uint8_t i = 0; i < NUM_LEDS; i++) {
     leds[i] = CRGB(val, val, val);
   }
   FastLED.show();
@@ -195,22 +127,22 @@ void setup() {
 }
 
 void loop() {
-  if (current.pulse) {
-    fade(PULSE_MIN_VAL, current.pulse_duration / 2);
+  if (current.pulse != PULSE_NONE) {
+    fade(PULSE_MIN_VAL, current.pulse);
   }
 
   if (next != current) {
-    if (next.hue_initialized != current.hue_initialized || next.hue != current.hue) {
-      // if hue is changing, fade to a lower brightness before changing to make the change less jarring
-      fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
+    if (next.color != current.color) {
+      // if color is changing, fade to a lower brightness first to make the change less jarring
+      fade(CHANGE_MIN_VAL, PULSE_CHANGE);
       current = next;
-      fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
+      fade(PULSE_MIN_VAL, PULSE_CHANGE);
     } else {
       current = next;
     }
   }
 
-  fade(PULSE_MAX_VAL, current.pulse_duration / 2);
+  fade(PULSE_MAX_VAL, current.pulse);
 }
 
 // Called when the button is both pressed and released
@@ -233,17 +165,7 @@ ISR(PCINT0_vect){
 ISR(TIMER4_OVF_vect) {
   if (buttonDebounced == false) {
     buttonDebounced = true;
-    switch (brightness) {
-      case BRIGHTNESS_MIN:
-        brightness = BRIGHTNESS_MED;
-        break;
-      case BRIGHTNESS_MED:
-        brightness = BRIGHTNESS_MAX;
-        break;
-      case BRIGHTNESS_MAX:
-        brightness = BRIGHTNESS_MIN;
-        break;
-    }
-    FastLED.setBrightness(brightness);
+    brightness = (brightness + 1) % 3;
+    FastLED.setBrightness(brightnesses[brightness]);
   }
 }
