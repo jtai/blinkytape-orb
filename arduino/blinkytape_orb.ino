@@ -1,4 +1,5 @@
 #include "FastLED.h"
+#include "state.h"
 
 // hardware
 #define NUM_LEDS 12
@@ -27,28 +28,27 @@
 // state
 CRGB leds[NUM_LEDS];
 
-byte prev_command;
-byte command;
 bool initialized;
-
-uint8_t hue;
 uint8_t val;
-bool pulse;
-long pulse_duration;
+
+State current;
+State next;
 
 bool buttonDebounced;
 uint8_t brightness;
 
 
 void checkSerial() {
-  if (Serial.available() > 0) {
-    command = Serial.read();
+  if (Serial.available() == 0) {
+    return;
   }
 
-  // handle certain commands immediately, then swallow the
-  // handled commands to prevent rushing through the next fade
+  uint8_t command = Serial.read();
+
   if (command >= 60 && command < 63) { // brightness
-    switch (command - 60) { // align to ASCII "<"
+    command -= 60; // align to ASCII "<"
+
+    switch (command) {
       case 0:
         brightness = BRIGHTNESS_MIN;
         break;
@@ -60,12 +60,52 @@ void checkSerial() {
         break;
     }
 
+    // handle this immediately
     FastLED.setBrightness(brightness);
-    command = prev_command;
   } else if (command >= 65 && command < 89) { // color and pulse
-    // handled later at low point in fade for a nice smooth transition
-  } else { // invalid command
-    command = prev_command;
+    command -= 65; // align to ASCII "A"
+
+    switch ((command & B00011100) >> 2) {
+      case 0:
+        next.hue = HUE_RED;
+        break;
+      case 1:
+        next.hue = HUE_ORANGE;
+        break;
+      case 2:
+        next.hue = HUE_YELLOW;
+        break;
+      case 3:
+        next.hue = HUE_GREEN;
+        break;
+      case 4:
+        next.hue = HUE_BLUE;
+        break;
+      case 5:
+        next.hue = HUE_PURPLE;
+        break;
+    }
+
+    switch (command & B00000011) {
+      case 0:
+        next.pulse = false;
+        next.pulse_duration = CHANGE_DURATION;
+        break;
+      case 1:
+        next.pulse = true;
+        next.pulse_duration = PULSE_DURATION_SLOW;
+        break;
+      case 2:
+        next.pulse = true;
+        next.pulse_duration = PULSE_DURATION_MED;
+        break;
+      case 3:
+        next.pulse = true;
+        next.pulse_duration = PULSE_DURATION_FAST;
+        break;
+    }
+
+    // handle change later at low point in fade for a nice smooth transition
   }
 }
 
@@ -104,17 +144,16 @@ void fade(uint8_t new_val, long duration) {
   for (uint8_t v = val; v != new_val; v += incr) {
     for (int i = 0; i < NUM_LEDS; i++) {
       if (initialized) {
-        leds[i] = CHSV(hue, 255, v);
+        leds[i] = CHSV(current.hue, 255, v);
       } else {
         leds[i] = CRGB(v, v, v);
       }
     }
     FastLED.show();
 
-    // check to see if we've been given a new hue or pulse command
-    // if so, hurry things along
+    // speed up the fade if command was received and state is changing
     checkSerial();
-    if (command != prev_command) {
+    if (next != current) {
       FastLED.delay(change_delay_ms);
     } else {
       FastLED.delay(delay_ms);
@@ -130,13 +169,12 @@ void setup() {
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
   FastLED.setCorrection(LED_CORRECTION);
 
-  prev_command = 122; // initialize to invalid command so any valid command will trigger action
-  command = 122;
   initialized = false;
-
   val = PULSE_MAX_VAL;
-  pulse = true;
-  pulse_duration = PULSE_DURATION_MED;
+
+  current.pulse = true;
+  current.pulse_duration = PULSE_DURATION_MED;
+  next = current;
 
   brightness = BRIGHTNESS_MED;
   FastLED.setBrightness(brightness);
@@ -158,62 +196,20 @@ void setup() {
 }
 
 void loop() {
-  if (pulse) {
-    fade(PULSE_MIN_VAL, pulse_duration / 2);
+  if (current.pulse) {
+    fade(PULSE_MIN_VAL, current.pulse_duration / 2);
   }
 
-  if (command != prev_command) {
+  if (next != current) {
     fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
 
-    prev_command = command;
     initialized = true;
-
-    byte c = command - 65; // align to ASCII "A"
-
-    switch ((c & B00011100) >> 2) {
-      case 0:
-        hue = HUE_RED;
-        break;
-      case 1:
-        hue = HUE_ORANGE;
-        break;
-      case 2:
-        hue = HUE_YELLOW;
-        break;
-      case 3:
-        hue = HUE_GREEN;
-        break;
-      case 4:
-        hue = HUE_BLUE;
-        break;
-      case 5:
-        hue = HUE_PURPLE;
-        break;
-    }
-
-    switch (c & B00000011) {
-      case 0:
-        pulse = false;
-        pulse_duration = CHANGE_DURATION;
-        break;
-      case 1:
-        pulse = true;
-        pulse_duration = PULSE_DURATION_SLOW;
-        break;
-      case 2:
-        pulse = true;
-        pulse_duration = PULSE_DURATION_MED;
-        break;
-      case 3:
-        pulse = true;
-        pulse_duration = PULSE_DURATION_FAST;
-        break;
-    }
+    current = next;
 
     fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
   }
 
-  fade(PULSE_MAX_VAL, pulse_duration / 2);
+  fade(PULSE_MAX_VAL, current.pulse_duration / 2);
 }
 
 // Called when the button is both pressed and released
