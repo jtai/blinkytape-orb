@@ -23,6 +23,7 @@ State next;
 bool buttonDebounced;
 uint8_t brightness;
 
+unsigned long lastCommand;
 
 void checkSerial() {
   if (Serial.available() == 0) {
@@ -30,6 +31,7 @@ void checkSerial() {
   }
 
   uint8_t command = Serial.read();
+  lastCommand = millis();
 
   if (command >= 60 && command < 63) { // brightness
     command -= 60; // align to ASCII "<"
@@ -110,6 +112,8 @@ void setup() {
   brightness = BRIGHTNESS_MED;
   FastLED.setBrightness(brightnesses[brightness]);
 
+  lastCommand = millis();
+
   for (uint8_t i = 0; i < NUM_LEDS; i++) {
     leds[i] = CRGB(val, val, val);
   }
@@ -135,11 +139,28 @@ void loop() {
     if (next.color != current.color) {
       // if color is changing, fade to a lower brightness first to make the change less jarring
       fade(CHANGE_MIN_VAL, PULSE_CHANGE);
+
       current = next;
+
+      // wake up from idle on color change, but do it at lowest brightness
+      FastLED.setBrightness(brightnesses[brightness]);
+
       fade(PULSE_MIN_VAL, PULSE_CHANGE);
     } else {
       current = next;
+
+      // wake up from idle on pulse change
+      FastLED.setBrightness(brightnesses[brightness]);
     }
+  }
+
+  if (millis() > lastCommand + IDLE_TIMEOUT) {
+    FastLED.setBrightness(brightnesses[BRIGHTNESS_IDLE]);
+  } else {
+    // wake up from idle on any change, even invalid commands
+    // this call is redundant in the case of state change (already woken above),
+    // but setBrightness() is idempotent so it's ok
+    FastLED.setBrightness(brightnesses[brightness]);
   }
 
   fade(PULSE_MAX_VAL, current.pulse);

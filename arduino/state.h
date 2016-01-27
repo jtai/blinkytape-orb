@@ -3,8 +3,6 @@
 
 #include "visuals.h"
 
-struct State;
-
 struct State {
   Color color;
   Pulse pulse;

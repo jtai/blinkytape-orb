@@ -5,6 +5,8 @@
 #define PULSE_MIN_VAL 160
 #define CHANGE_MIN_VAL 64
 
+#define IDLE_TIMEOUT 120000 // 2 minutes
+
 typedef enum Color {
   COLOR_RED,
   COLOR_ORANGE,
@@ -28,8 +30,9 @@ long pulse_durations[5] = {800 /* used for fading up */, 6000, 3000, 0, 800};
 typedef enum {
   BRIGHTNESS_MIN,
   BRIGHTNESS_MED,
-  BRIGHTNESS_MAX
+  BRIGHTNESS_MAX,
+  BRIGHTNESS_IDLE
 } Brightness;
-uint8_t brightnesses[3] = {32, 106, 255};
+uint8_t brightnesses[4] = {32, 106, 255, 16};
 
 #endif
