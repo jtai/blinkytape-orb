@@ -28,7 +28,6 @@
 // state
 CRGB leds[NUM_LEDS];
 
-bool initialized;
 uint8_t val;
 
 State current;
@@ -65,6 +64,7 @@ void checkSerial() {
   } else if (command >= 65 && command < 89) { // color and pulse
     command -= 65; // align to ASCII "A"
 
+    next.hue_initialized = true;
     switch ((command & B00011100) >> 2) {
       case 0:
         next.hue = HUE_RED;
@@ -143,7 +143,7 @@ void fade(uint8_t new_val, long duration) {
 
   for (uint8_t v = val; v != new_val; v += incr) {
     for (int i = 0; i < NUM_LEDS; i++) {
-      if (initialized) {
+      if (current.hue_initialized) {
         leds[i] = CHSV(current.hue, 255, v);
       } else {
         leds[i] = CRGB(v, v, v);
@@ -169,7 +169,6 @@ void setup() {
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
   FastLED.setCorrection(LED_CORRECTION);
 
-  initialized = false;
   val = PULSE_MAX_VAL;
 
   current.pulse = true;
@@ -203,7 +202,6 @@ void loop() {
   if (next != current) {
     fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
 
-    initialized = true;
     current = next;
 
     fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
