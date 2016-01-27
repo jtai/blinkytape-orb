@@ -22,8 +22,8 @@ SOFTWARE.
 
 ---
 
-Hardware initialization and interrupt handling arduino code was copied from
-https://github.com/Blinkinlabs/BlinkyTape_Arduino, which has the following
+Hardware initialization, interrupt handling, and eeprom arduino code was copied
+from https://github.com/Blinkinlabs/BlinkyTape_Arduino, which has the following
 license:
 
 ## The MIT License (MIT)

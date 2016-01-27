@@ -1,4 +1,6 @@
-#include "FastLED.h"
+#include <EEPROM.h>
+#include <FastLED.h>
+
 #include "visuals.h"
 #include "state.h"
 
@@ -11,6 +13,10 @@
 #define ANALOG_INPUT A9
 #define EXTRA_PIN_A 7
 #define EXTRA_PIN_B 11
+
+#define EEPROM_START_ADDRESS 0
+#define EEPROM_MAGIG_BYTE_0 0x42
+#define EEPROM_MAGIC_BYTE_1 0x1e
 
 // state
 CRGB leds[NUM_LEDS];
@@ -110,6 +116,20 @@ void setup() {
   next = current;
 
   brightness = BRIGHTNESS_MED;
+
+  // Attempt to read in the last saved brightness
+  if (EEPROM.read(EEPROM_START_ADDRESS) == EEPROM_MAGIG_BYTE_0 &&
+      EEPROM.read(EEPROM_START_ADDRESS + 1) == EEPROM_MAGIC_BYTE_1) {
+    uint8_t saved_brightness = EEPROM.read(EEPROM_START_ADDRESS + 2);
+    if (saved_brightness < 3) {
+      brightness = saved_brightness;
+    }
+  } else {
+    EEPROM.write(EEPROM_START_ADDRESS, EEPROM_MAGIG_BYTE_0);
+    EEPROM.write(EEPROM_START_ADDRESS + 1, EEPROM_MAGIC_BYTE_1);
+    EEPROM.write(EEPROM_START_ADDRESS + 2, brightness);
+  }
+
   FastLED.setBrightness(brightnesses[brightness]);
 
   lastCommand = millis();
@@ -188,5 +208,6 @@ ISR(TIMER4_OVF_vect) {
     buttonDebounced = true;
     brightness = (brightness + 1) % 3;
     FastLED.setBrightness(brightnesses[brightness]);
+    EEPROM.write(EEPROM_START_ADDRESS + 2, brightness);
   }
 }
