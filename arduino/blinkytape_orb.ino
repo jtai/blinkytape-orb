@@ -119,7 +119,7 @@ void fade(uint8_t new_val, long duration) {
 
     return;
   }
-  
+
   int incr;
   long delay_ms;
   long change_delay_ms;
@@ -200,11 +200,14 @@ void loop() {
   }
 
   if (next != current) {
-    fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
-
-    current = next;
-
-    fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
+    if (next.hue_initialized != current.hue_initialized || next.hue != current.hue) {
+      // if hue is changing, fade to a lower brightness before changing to make the change less jarring
+      fade(CHANGE_MIN_VAL, CHANGE_DURATION / 2);
+      current = next;
+      fade(PULSE_MIN_VAL, CHANGE_DURATION / 2);
+    } else {
+      current = next;
+    }
   }
 
   fade(PULSE_MAX_VAL, current.pulse_duration / 2);
