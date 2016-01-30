@@ -7,6 +7,7 @@
 // hardware
 #define NUM_LEDS 12
 #define LED_CORRECTION TypicalSMD5050
+#define COLOR_TEMPERATURE OvercastSky
 
 #define DATA_PIN 13
 #define BUTTON_IN 10
@@ -109,6 +110,7 @@ void setup() {
 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
   FastLED.setCorrection(LED_CORRECTION);
+  FastLED.setTemperature(COLOR_TEMPERATURE);
 
   val = PULSE_MAX_VAL;
 
