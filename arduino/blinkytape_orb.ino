@@ -176,7 +176,7 @@ void loop() {
     }
   }
 
-  if (millis() > lastCommand + IDLE_TIMEOUT) {
+  if (millis() - lastCommand > IDLE_TIMEOUT) {
     FastLED.setBrightness(brightnesses[BRIGHTNESS_IDLE]);
   } else {
     // wake up from idle on any change, even invalid commands
