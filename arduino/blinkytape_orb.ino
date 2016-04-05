@@ -109,8 +109,6 @@ void setup() {
   Serial.begin(57600);
 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
-  FastLED.setCorrection(LED_CORRECTION);
-  FastLED.setTemperature(COLOR_TEMPERATURE);
 
   val = PULSE_MAX_VAL;
 
@@ -163,6 +161,10 @@ void loop() {
       fade(CHANGE_MIN_VAL, PULSE_CHANGE);
 
       current = next;
+
+      // apply color correction
+      FastLED.setCorrection(LED_CORRECTION);
+      FastLED.setTemperature(COLOR_TEMPERATURE);
 
       // wake up from idle on color change, but do it at lowest brightness
       FastLED.setBrightness(brightnesses[brightness]);
