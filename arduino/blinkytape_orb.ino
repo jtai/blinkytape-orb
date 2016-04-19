@@ -84,12 +84,14 @@ void fade(uint8_t next_val, Pulse pulse) {
   }
 
   for (uint8_t v = val; v != next_val; v += incr) {
+    CRGB color;
+    if (current.color == COLOR_WHITE) {
+      color = CRGB(v, v, v);
+    } else {
+      color = CHSV(colors[current.color], 255, v);
+    }
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
-      if (current.color == COLOR_WHITE) {
-        leds[i] = CRGB(v, v, v);
-      } else {
-        leds[i] = CHSV(colors[current.color], 255, v);
-      }
+      leds[i] = color;
     }
     FastLED.show();
 
