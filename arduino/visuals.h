@@ -1,9 +1,9 @@
 #ifndef __INC_VISUALS_H
 #define __INC_VISUALS_H
 
-#define PULSE_MAX_VAL 255
-#define PULSE_MIN_VAL 160
-#define CHANGE_MIN_VAL 64
+#define VAL_MAX 255
+#define VAL_MED 160
+#define VAL_MIN 64
 
 #define IDLE_TIMEOUT 120000 // 2 minutes
 

@@ -112,7 +112,7 @@ void setup() {
 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
 
-  val = PULSE_MAX_VAL;
+  val = VAL_MAX;
 
   current.pulse = PULSE_MED;
   next = current;
@@ -154,13 +154,13 @@ void setup() {
 
 void loop() {
   if (current.pulse != PULSE_NONE) {
-    fade(PULSE_MIN_VAL, current.pulse);
+    fade(VAL_MED, current.pulse);
   }
 
   if (next != current) {
     if (next.color != current.color) {
       // if color is changing, fade to a lower brightness first to make the change less jarring
-      fade(CHANGE_MIN_VAL, PULSE_CHANGE);
+      fade(VAL_MIN, PULSE_CHANGE);
 
       current = next;
 
@@ -171,7 +171,7 @@ void loop() {
       // wake up from idle on color change, but do it at lowest brightness
       FastLED.setBrightness(brightnesses[brightness]);
 
-      fade(PULSE_MIN_VAL, PULSE_CHANGE);
+      fade(VAL_MED, PULSE_CHANGE);
     } else {
       current = next;
 
@@ -189,7 +189,7 @@ void loop() {
     FastLED.setBrightness(brightnesses[brightness]);
   }
 
-  fade(PULSE_MAX_VAL, current.pulse);
+  fade(VAL_MAX, current.pulse);
 }
 
 // Called when the button is both pressed and released
