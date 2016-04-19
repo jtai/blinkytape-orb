@@ -70,17 +70,11 @@ void fade(uint8_t next_val, Pulse pulse) {
     return;
   }
 
-  int8_t incr;
-  if (val < next_val) {
-    incr = 1;
-  } else if (val > next_val) {
-    incr = -1;
-  }
-
-  long delay_ms = duration / (next_val - val) * incr;
-  long change_delay_ms = (pulse_durations[PULSE_CHANGE] / 2) / (next_val - val) * incr;
-  if (delay_ms < change_delay_ms) {
-    change_delay_ms = delay_ms;
+  int8_t incr = (val < next_val) ? 1 : -1;
+  long delay = duration / (next_val - val) * incr;
+  long change_delay = (pulse_durations[PULSE_CHANGE] / 2) / (next_val - val) * incr;
+  if (delay < change_delay) {
+    change_delay = delay;
   }
 
   for (uint8_t v = val; v != next_val; v += incr) {
@@ -98,9 +92,9 @@ void fade(uint8_t next_val, Pulse pulse) {
     // speed up the fade if command was received and state is changing
     checkSerial();
     if (next != current) {
-      FastLED.delay(change_delay_ms);
+      FastLED.delay(change_delay);
     } else {
-      FastLED.delay(delay_ms);
+      FastLED.delay(delay);
     }
   }
 
