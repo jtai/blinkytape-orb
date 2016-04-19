@@ -7,7 +7,7 @@
 
 #define IDLE_TIMEOUT 120000 // 2 minutes
 
-typedef enum Color {
+typedef enum {
   COLOR_RED,
   COLOR_ORANGE,
   COLOR_YELLOW,
