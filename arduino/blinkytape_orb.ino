@@ -157,36 +157,26 @@ void loop() {
     fade(VAL_MED, current.pulse);
   }
 
-  if (next != current) {
-    if (next.color != current.color) {
-      // if color is changing, fade to a lower brightness first to make the change less jarring
-      fade(VAL_MIN, PULSE_CHANGE);
+  if (next.color != current.color) {
+    // if color is changing, fade to a lower brightness first to make the change less jarring
+    fade(VAL_MIN, PULSE_CHANGE);
 
-      current = next;
-
-      // apply color correction
-      FastLED.setCorrection(LED_CORRECTION);
-      FastLED.setTemperature(COLOR_TEMPERATURE);
-
-      // wake up from idle on color change, but do it at lowest brightness
-      FastLED.setBrightness(brightnesses[brightness]);
-
-      fade(VAL_MED, PULSE_CHANGE);
-    } else {
-      current = next;
-
-      // wake up from idle on pulse change
-      FastLED.setBrightness(brightnesses[brightness]);
-    }
+    // apply color correction
+    FastLED.setCorrection(LED_CORRECTION);
+    FastLED.setTemperature(COLOR_TEMPERATURE);
   }
+
+  current = next;
 
   if (millis() - lastCommand > IDLE_TIMEOUT) {
     FastLED.setBrightness(brightnesses[BRIGHTNESS_IDLE]);
   } else {
-    // wake up from idle on any change, even invalid commands
-    // this call is redundant in the case of state change (already woken above),
-    // but setBrightness() is idempotent so it's ok
+    // wake up from idle on color change, but do it at lowest brightness
     FastLED.setBrightness(brightnesses[brightness]);
+  }
+
+  if (val == VAL_MIN) {
+    fade(VAL_MED, PULSE_CHANGE);
   }
 
   fade(VAL_MAX, current.pulse);
