@@ -84,13 +84,14 @@ void fade(uint8_t next_val, Pulse pulse) {
     } else {
       color = CHSV(colors[current.color], 255, v);
     }
+
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
       leds[i] = color;
     }
-    FastLED.show();
 
     // speed up the fade if command was received and state is changing
     checkSerial();
+
     if (next != current) {
       FastLED.delay(change_delay);
     } else {
