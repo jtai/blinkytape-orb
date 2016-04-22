@@ -33,6 +33,6 @@ typedef enum {
   BRIGHTNESS_MAX,
   BRIGHTNESS_IDLE
 } Brightness;
-uint8_t brightnesses[4] = {32, 106, 255, 12};
+uint8_t brightnesses[4] = {32, 144, 255, 16};
 
 #endif
