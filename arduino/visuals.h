@@ -25,7 +25,7 @@ typedef enum {
   PULSE_FAST,
   PULSE_CHANGE,
 } Pulse;
-long pulse_durations[5] = {800 /* used for fading up */, 6000, 3000, 800, 800};
+long delays[5] = {3 /* used for fading up */, 30, 15, 3, 3 /* should be lower than all other delays */};
 
 typedef enum {
   BRIGHTNESS_MIN,

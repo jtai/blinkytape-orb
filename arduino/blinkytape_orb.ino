@@ -55,14 +55,7 @@ void checkSerial() {
   }
 }
 
-long adjustedDelay(long duration, uint8_t frames) {
-  long dataTransferDelay = 0.03 * NUM_LEDS * frames; // 30us per pixel
-  return (duration - dataTransferDelay) / frames;
-}
-
 void fade(uint8_t next_val, Pulse pulse) {
-  long duration = pulse_durations[pulse] / 2;
-
   if (next_val == val) {
     // check for input before returning, otherwise we won't respond to changes
     // when pulse is PULSE_NONE
@@ -70,19 +63,12 @@ void fade(uint8_t next_val, Pulse pulse) {
 
     // setBrightness() requires a call to delay() periodically--without this,
     // the brightness will not change when pulse is PULSE_NONE
-    FastLED.delay(duration);
+    FastLED.delay(delays[pulse]);
 
     return;
   }
 
   int8_t incr = (val < next_val) ? 1 : -1;
-  uint8_t frames = (next_val - val) * incr;
-  long delay = adjustedDelay(duration, frames);
-  long change_delay = adjustedDelay(pulse_durations[PULSE_CHANGE] / 2, frames);
-  if (delay < change_delay) {
-    change_delay = delay;
-  }
-
   for (uint8_t v = val; v != next_val; v += incr) {
     CRGB color;
     if (current.color == COLOR_WHITE) {
@@ -99,9 +85,9 @@ void fade(uint8_t next_val, Pulse pulse) {
     checkSerial();
 
     if (next != current) {
-      FastLED.delay(change_delay);
+      FastLED.delay(delays[PULSE_CHANGE]);
     } else {
-      FastLED.delay(delay);
+      FastLED.delay(delays[pulse]);
     }
   }
 
