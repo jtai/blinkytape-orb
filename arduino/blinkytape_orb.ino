@@ -55,6 +55,11 @@ void checkSerial() {
   }
 }
 
+long adjustedDelay(long duration, uint8_t frames) {
+  long dataTransferDelay = 0.03 * NUM_LEDS * frames; // 30us per pixel
+  return (duration - dataTransferDelay) / frames;
+}
+
 void fade(uint8_t next_val, Pulse pulse) {
   long duration = pulse_durations[pulse] / 2;
 
@@ -71,8 +76,9 @@ void fade(uint8_t next_val, Pulse pulse) {
   }
 
   int8_t incr = (val < next_val) ? 1 : -1;
-  long delay = duration / (next_val - val) * incr;
-  long change_delay = (pulse_durations[PULSE_CHANGE] / 2) / (next_val - val) * incr;
+  uint8_t frames = (next_val - val) * incr;
+  long delay = adjustedDelay(duration, frames);
+  long change_delay = adjustedDelay(pulse_durations[PULSE_CHANGE] / 2, frames);
   if (delay < change_delay) {
     change_delay = delay;
   }
